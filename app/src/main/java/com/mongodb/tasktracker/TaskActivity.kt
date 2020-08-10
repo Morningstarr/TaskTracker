@@ -33,7 +33,6 @@ class TaskActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_task)
 
-        //Realm.init(baseContext)
         realm = Realm.getDefaultInstance()
         recyclerView = findViewById(R.id.task_list)
         fab = findViewById(R.id.floating_action_button)
@@ -80,27 +79,18 @@ class TaskActivity : AppCompatActivity() {
             Log.w(TAG(), e)
         }
         if (user == null) {
-            // if no user is currently logged in, start the login activity so the user can authenticate
+
             startActivity(Intent(this, LoginActivity::class.java))
         }
         else {
-            // configure realm to use the current user and the partition corresponding to "My Project"
+
             val config = SyncConfiguration.Builder(user!!, "My Project")
                 .waitForInitialRemoteData()
                 .build()
 
-            // save this configuration as the default for this entire app so other activities and threads can open their own realm instances
             Realm.setDefaultConfiguration(config)
             try {
-                realm = Realm.getInstance(config)
-                val dogs: RealmResults<Task> = realm.where(Task::class.java).findAll()
-                for (n in 0..dogs.size - 1) {
-                    Toast.makeText(baseContext, dogs[n]?.name, Toast.LENGTH_LONG).show()
-                }
-
-                //realm = Realm.getInstance(config)
-
-            // Sync all realm changes via a new instance, and when that instance has been successfully created connect it to an on-screen list (a recycler view)
+                //исключение вылетает здесь
             Realm.getInstanceAsync(config, object: Realm.Callback() {
                 override fun onSuccess(realm: Realm) {
                     // since this realm should live exactly as long as this activity, assign the realm to a member variable
@@ -110,7 +100,7 @@ class TaskActivity : AppCompatActivity() {
             })
             }
             catch(e: Exception){
-                Log.v(TAG(), e.message)
+                Log.v(TAG(), "здесь")
             }
         }
         /*super.onStart()

@@ -7,9 +7,9 @@ import org.bson.types.ObjectId
 
 
 open class Task(_name: String = "Task", project: String = "My Project") : RealmObject() {
-    @PrimaryKey @Required var _id: ObjectId = ObjectId()
+    @PrimaryKey var _id: ObjectId = ObjectId()
     var _partition: String = project
-    @Required var name: String = _name
+    var name: String = _name
 
     @Required
     private var status: String = TaskStatus.Open.name

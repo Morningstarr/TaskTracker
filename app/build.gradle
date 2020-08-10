@@ -19,7 +19,7 @@ android {
     }
 
     buildTypes {
-        def appId = "task-tracker-test-hvdqu"
+        def appId = "task-tracker-tut-dmkmo"
         debug {
             debuggable true
             buildConfigField "String", "MONGODB_REALM_APP_ID", "\"${appId}\""
