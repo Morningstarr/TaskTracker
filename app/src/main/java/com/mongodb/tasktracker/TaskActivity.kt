@@ -7,17 +7,20 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.EditText
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import io.realm.Realm
-import io.realm.mongodb.User
-import io.realm.kotlin.where
-import io.realm.mongodb.sync.SyncConfiguration
-import com.mongodb.tasktracker.model.TaskAdapter
 import com.mongodb.tasktracker.model.Task
+import com.mongodb.tasktracker.model.TaskAdapter
+import io.realm.Realm
+import io.realm.RealmResults
+import io.realm.kotlin.where
+import io.realm.mongodb.User
+import io.realm.mongodb.sync.SyncConfiguration
+
 
 class TaskActivity : AppCompatActivity() {
     private lateinit var realm: Realm
@@ -30,6 +33,7 @@ class TaskActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_task)
 
+        //Realm.init(baseContext)
         realm = Realm.getDefaultInstance()
         recyclerView = findViewById(R.id.task_list)
         fab = findViewById(R.id.floating_action_button)
@@ -41,10 +45,20 @@ class TaskActivity : AppCompatActivity() {
                 .setCancelable(true)
                 .setPositiveButton("Create") { dialog, _ -> run {
                     dialog.dismiss()
-                    val task = Task(input.text.toString())
-                    // all realm writes need to occur inside of a transaction
-                    realm.executeTransactionAsync { realm ->
-                        realm.insert(task)
+                    try {
+                        val task = Task(input.text.toString())
+                        realm.executeTransactionAsync { realm ->
+                            realm.insert(task)
+                        }
+                    }
+                    catch(exception: Exception){
+                        Toast.makeText(baseContext, exception.message, Toast.LENGTH_SHORT).show()
+                    }
+                    finally{
+                        val dogs: RealmResults<Task> = realm.where(Task::class.java).findAll()
+                        for(n in 0..dogs.size - 1){
+                            Toast.makeText(baseContext, dogs[n]?.name, Toast.LENGTH_LONG).show()
+                        }
                     }
                 }
                 }
@@ -59,7 +73,7 @@ class TaskActivity : AppCompatActivity() {
     }
 
     override fun onStart() {
-        /*super.onStart()
+        super.onStart()
         try {
             user = taskApp.currentUser()
         } catch (e: IllegalStateException) {
@@ -77,6 +91,14 @@ class TaskActivity : AppCompatActivity() {
 
             // save this configuration as the default for this entire app so other activities and threads can open their own realm instances
             Realm.setDefaultConfiguration(config)
+            try {
+                realm = Realm.getInstance(config)
+                val dogs: RealmResults<Task> = realm.where(Task::class.java).findAll()
+                for (n in 0..dogs.size - 1) {
+                    Toast.makeText(baseContext, dogs[n]?.name, Toast.LENGTH_LONG).show()
+                }
+
+                //realm = Realm.getInstance(config)
 
             // Sync all realm changes via a new instance, and when that instance has been successfully created connect it to an on-screen list (a recycler view)
             Realm.getInstanceAsync(config, object: Realm.Callback() {
@@ -86,17 +108,25 @@ class TaskActivity : AppCompatActivity() {
                     setUpRecyclerView(realm)
                 }
             })
-        }*/
-        super.onStart()
+            }
+            catch(e: Exception){
+                Log.v(TAG(), e.message)
+            }
+        }
+        /*super.onStart()
         try {
             user = taskApp.currentUser()
         } catch (e: IllegalStateException) {
             Log.w(TAG(), e)
         }
         if (user == null) {
-            // if no user is currently logged in, start the login activity so the user can authenticate
             startActivity(Intent(this, LoginActivity::class.java))
-        }
+        }*/
+
+        /*val dogs: RealmResults<Task> = realm.where(Task::class.java).findAll()
+        for(n in 0..dogs.size - 1){
+            Toast.makeText(baseContext, dogs[n]?.name, Toast.LENGTH_LONG).show()
+        }*/
     }
 
     private fun setUpRecyclerView(realm: Realm) {
@@ -110,7 +140,6 @@ class TaskActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         recyclerView.adapter = null
-        // if a user hasn't logged out when the activity exits, still need to explicitly close the realm
         realm.close()
     }
 
@@ -124,7 +153,6 @@ class TaskActivity : AppCompatActivity() {
             R.id.action_logout -> {
                 user?.logOutAsync {
                     if (it.isSuccess) {
-                        // always close the realm when finished interacting to free up resources
                         realm.close()
                         user = null
                         Log.v(TAG(), "user logged out")
