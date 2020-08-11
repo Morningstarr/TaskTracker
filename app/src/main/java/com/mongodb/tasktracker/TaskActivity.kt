@@ -53,12 +53,6 @@ class TaskActivity : AppCompatActivity() {
                     catch(exception: Exception){
                         Toast.makeText(baseContext, exception.message, Toast.LENGTH_SHORT).show()
                     }
-                    finally{
-                        val dogs: RealmResults<Task> = realm.where(Task::class.java).findAll()
-                        for(n in 0..dogs.size - 1){
-                            Toast.makeText(baseContext, dogs[n]?.name, Toast.LENGTH_LONG).show()
-                        }
-                    }
                 }
                 }
                 .setNegativeButton("Cancel") { dialog, _ -> dialog.cancel()
@@ -103,20 +97,6 @@ class TaskActivity : AppCompatActivity() {
                 Log.v(TAG(), "здесь")
             }
         }
-        /*super.onStart()
-        try {
-            user = taskApp.currentUser()
-        } catch (e: IllegalStateException) {
-            Log.w(TAG(), e)
-        }
-        if (user == null) {
-            startActivity(Intent(this, LoginActivity::class.java))
-        }*/
-
-        /*val dogs: RealmResults<Task> = realm.where(Task::class.java).findAll()
-        for(n in 0..dogs.size - 1){
-            Toast.makeText(baseContext, dogs[n]?.name, Toast.LENGTH_LONG).show()
-        }*/
     }
 
     private fun setUpRecyclerView(realm: Realm) {
